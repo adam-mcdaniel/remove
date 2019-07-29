@@ -1,0 +1,9 @@
+[package]
+name = "remove"
+version = "0.1.0"
+authors = ["Adam McDaniel <adam.mcdanie17@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+clap = "2.33"
+dirs = "2.0"
