@@ -3,6 +3,8 @@ name = "remove"
 version = "0.1.0"
 authors = ["Adam McDaniel <adam.mcdanie17@gmail.com>"]
 edition = "2018"
+description = "A safer alternative to rm"
+license-file = "LICENSE"
 
 [dependencies]
 clap = "2.33"
