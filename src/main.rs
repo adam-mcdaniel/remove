@@ -20,46 +20,40 @@ fn trash_dir() -> PathBuf {
 
 /// Makes a directory and its parents
 /// Exits with error code 1 on failure
-fn mkdir(dir: PathBuf) {
-    match std::fs::create_dir_all(dir.clone()) {
-        Err(_) => {
-            println!("Failed to create folder {:?}", dir);
-            exit(1);
-        },
-        _ => {}
-    };
+fn mkdir(dir: PathBuf) -> Result<(), String> {
+    if let Err(_) = std::fs::create_dir_all(dir.clone()) {
+        Err(format!("Failed to create folder {:?}", dir))
+    } else {
+        Ok(())
+    }
 }
 
 /// Removes a directory and its contents
 /// Exits with error code 1 on failure
-fn rmdir(dir: PathBuf) {
-    match std::fs::remove_dir_all(dir.clone()) {
-        Err(_) => {
-            println!("Failed to remove folder {:?}", dir);
-            exit(1);
-        },
-        _ => {}
-    };
+fn rmdir(dir: PathBuf) -> Result<(), String> {
+    if let Err(_) = std::fs::remove_dir_all(dir.clone()) {
+        Err(format!("Failed to remove folder {:?}", dir))
+    } else {
+        Ok(())
+    }
 }
 
 /// Makes a directory and its parents
 /// Exits with error code 1 on failure
-fn rename(from: PathBuf, to: PathBuf) {
-    match std::fs::rename(from.clone(), to.clone()) {
-        Err(_) => {
-            println!("Failed to move {:?} to {:?}", from, to);
-            exit(1);
-        },
-        _ => {}
-    };
+fn rename(from: PathBuf, to: PathBuf) -> Result<(), String> {
+    if let Err(_) = std::fs::rename(from.clone(), to.clone()) {
+        Err(format!("Failed to move {:?} to {:?}", from, to))
+    } else {
+        Ok(())
+    }
 }
 
 
 /// Represents a file on disk
 enum File {
-    File(PathBuf),
-    Directory(PathBuf),
-    Nothing(PathBuf),
+    File(PathBuf),      // A singular file
+    Directory(PathBuf), // A directory on disk
+    Nothing(PathBuf)    // Basically an invalid path
 }
 
 
@@ -71,13 +65,26 @@ impl Remove for File {
     fn remove(&self) -> Result<(), String> {
         match self {
             File::File(f) => {
-                let name = f.file_name().unwrap().to_str().unwrap();
-                rename(f.clone(), trash_dir().join(name));
+                // The path to the hypothetical trashed file: $HOME/.trash/{f}
+                let trashed_file = trash_dir().join(f.file_name().unwrap().to_str().unwrap());
+
+                // Remove file/directory that this file would replace anyways
+                match rmdir(trashed_file.clone()) { _ => {} };
+
+                // Move to trash
+                rename(f.clone(), trashed_file)?;
+
                 Ok(())
             },
             File::Directory(dir) => {
-                let name = dir.file_name().unwrap().to_str().unwrap();
-                rename(dir.clone(), trash_dir().join(name));
+                // The path to the hypothetical trashed directory: $HOME/.trash/{dir}
+                let trashed_dir = trash_dir().join(dir.file_name().unwrap().to_str().unwrap());
+
+                // Remove file/directory that this file would replace anyways
+                match rmdir(trashed_dir.clone()) { _ => {} };
+
+                // Move dir to trash
+                rename(dir.clone(), trashed_dir)?;
                 Ok(())
             },
             File::Nothing(f) => Err(format!("Could not find file {:?}", f)),
@@ -105,7 +112,10 @@ fn main() {
     // The absolute path to the trash folder
     let trash = trash_dir();
     // Make trash folder
-    mkdir(trash.clone());
+    if let Err(e) = mkdir(trash.clone()) {
+        println!("{}", e);
+        exit(1);
+    }
 
     let matches = clap_app!(rusty_ci =>
         (version: crate_version!())
@@ -128,8 +138,16 @@ fn main() {
     }
     
     if matches.is_present("EMPTY") {
-        rmdir(trash.clone());
-        mkdir(trash);
+        if let Err(e) = rmdir(trash.clone()) {
+            println!("{}", e);
+            exit(1);
+        }
+
+        if let Err(e) = mkdir(trash) {
+            println!("{}", e);
+            exit(1);
+        }
+
         println!("Emptied trash");
     }
 }
