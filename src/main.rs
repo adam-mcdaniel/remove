@@ -117,7 +117,7 @@ fn main() {
         exit(1);
     }
 
-    let matches = clap_app!(rusty_ci =>
+    let matches = clap_app!(remove =>
         (version: crate_version!())
         (author: crate_authors!())
         (about: "A cross platform, safe alternative to rm")
