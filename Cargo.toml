@@ -1,6 +1,6 @@
 [package]
 name = "remove"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Adam McDaniel <adam.mcdanie17@gmail.com>"]
 edition = "2018"
 description = "A safer alternative to rm"
