@@ -1,5 +1,4 @@
 use clap::{clap_app, crate_version, crate_authors, AppSettings};
-// use std::fs::{rename, remove_dir_all, create_dir_all};
 use std::path::PathBuf;
 use std::process::exit;
 
@@ -31,7 +30,7 @@ fn mkdir(dir: PathBuf) -> Result<(), String> {
 /// Removes a directory and its contents
 /// Exits with error code 1 on failure
 fn rmdir(dir: PathBuf) -> Result<(), String> {
-    if let Err(_) = std::fs::remove_dir_all(dir.clone()) {
+    if let Err(_) = remove_dir_all::remove_dir_all(dir.clone()) {
         Err(format!("Failed to remove folder {:?}", dir))
     } else {
         Ok(())
